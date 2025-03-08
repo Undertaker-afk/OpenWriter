@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import FlashcardViewer from '@/components/FlashcardViewer';
+import PomodoroTimer from '@/components/PomodoroTimer';
 
 // Define types for models
 interface Model {
@@ -43,6 +45,12 @@ export default function EditorPage() {
   const [showSidebar, setShowSidebar] = useState<boolean>(true);
   const [newConversationTitle, setNewConversationTitle] = useState<string>('');
   const [isCreatingConversation, setIsCreatingConversation] = useState<boolean>(false);
+
+  // Flashcard viewer state
+  const [showFlashcardViewer, setShowFlashcardViewer] = useState<boolean>(false);
+
+  // Pomodoro timer state
+  const [showPomodoroTimer, setShowPomodoroTimer] = useState<boolean>(false);
 
   // Fetch all conversations
   const fetchConversations = async () => {
@@ -1111,6 +1119,52 @@ export default function EditorPage() {
         </main>
       </div>
       
+      {/* Flashcard Viewer Toggle Button */}
+      <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2">
+        <button
+          onClick={() => setShowFlashcardViewer(!showFlashcardViewer)}
+          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full shadow-lg"
+        >
+          {showFlashcardViewer ? 'Hide Flashcards' : 'Show Flashcards'}
+        </button>
+        <button
+          onClick={() => setShowPomodoroTimer(!showPomodoroTimer)}
+          className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full shadow-lg"
+        >
+          {showPomodoroTimer ? 'Hide Timer' : 'Show Timer'}
+        </button>
+      </div>
+
+      {/* Flashcard Viewer */}
+      {showFlashcardViewer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-3xl w-full">
+            <FlashcardViewer />
+            <button
+              onClick={() => setShowFlashcardViewer(false)}
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Pomodoro Timer */}
+      {showPomodoroTimer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-md w-full">
+            <PomodoroTimer />
+            <button
+              onClick={() => setShowPomodoroTimer(false)}
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer className="py-4 text-center text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700">
         <p>Powered by OpenRouter • Using {selectedModel}</p>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import FlashcardViewer from '@/components/FlashcardViewer';
 import PomodoroTimer from '@/components/PomodoroTimer';
+import QuizGenerator from '@/components/QuizGenerator';
 
 // Define types for models
 interface Model {
@@ -554,6 +555,8 @@ export default function EditorPage() {
     { id: 'creative', name: 'Creative Writing', prompt: 'You are a creative writing assistant. Use vivid language, metaphors, and sensory details to craft engaging narratives. Develop interesting characters and compelling plots when appropriate.' },
     { id: 'business', name: 'Business Writing', prompt: 'You are a business writing assistant. Maintain professional tone, use clear and concise language, and emphasize key information. Format responses appropriately for business communications.' },
     { id: 'technical', name: 'Technical Writing', prompt: 'You are a technical writing assistant. Explain complex concepts clearly, use precise terminology, and structure information logically. Include relevant details while maintaining clarity for the intended audience.' },
+    { id: 'flashcard', name: 'Flashcard Generation', prompt: 'You are a flashcard generation assistant. Create flashcards with questions and answers based on the provided content.' },
+    { id: 'quiz', name: 'Quiz Generation', prompt: 'You are a quiz generation assistant. Create multiple-choice questions based on the provided content.' },
   ];
 
   return (
@@ -667,6 +670,25 @@ export default function EditorPage() {
                   </div>
                 </div>
               )}
+
+              {/* Flashcard and Quiz Sections */}
+              <div className="mt-4">
+                <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Flashcards & Quizzes</h3>
+                <div className="space-y-1 mt-2">
+                  <button
+                    onClick={() => setShowFlashcardViewer(true)}
+                    className="w-full text-left px-2 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  >
+                    Flashcard Viewer
+                  </button>
+                  <button
+                    onClick={() => setShowFlashcardViewer(true)}
+                    className="w-full text-left px-2 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  >
+                    Quiz Generator
+                  </button>
+                </div>
+              </div>
             </div>
           </aside>
         )}

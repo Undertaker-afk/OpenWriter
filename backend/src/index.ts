@@ -11,7 +11,7 @@ dotenv.config();
 
 // Create Express server
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT, 10) || 3001;
 
 
 // Enhanced CORS configuration with debug logging

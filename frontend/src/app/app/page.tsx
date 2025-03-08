@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import FlashcardViewer from '@/components/FlashcardViewer';
+import PomodoroTimer from '@/components/PomodoroTimer';
+import QuizGenerator from '@/components/QuizGenerator';
 
 // Define types for models
 interface Model {
@@ -43,6 +46,12 @@ export default function EditorPage() {
   const [showSidebar, setShowSidebar] = useState<boolean>(true);
   const [newConversationTitle, setNewConversationTitle] = useState<string>('');
   const [isCreatingConversation, setIsCreatingConversation] = useState<boolean>(false);
+
+  // Flashcard viewer state
+  const [showFlashcardViewer, setShowFlashcardViewer] = useState<boolean>(false);
+
+  // Pomodoro timer state
+  const [showPomodoroTimer, setShowPomodoroTimer] = useState<boolean>(false);
 
   // Fetch all conversations
   const fetchConversations = async () => {
@@ -546,6 +555,8 @@ export default function EditorPage() {
     { id: 'creative', name: 'Creative Writing', prompt: 'You are a creative writing assistant. Use vivid language, metaphors, and sensory details to craft engaging narratives. Develop interesting characters and compelling plots when appropriate.' },
     { id: 'business', name: 'Business Writing', prompt: 'You are a business writing assistant. Maintain professional tone, use clear and concise language, and emphasize key information. Format responses appropriately for business communications.' },
     { id: 'technical', name: 'Technical Writing', prompt: 'You are a technical writing assistant. Explain complex concepts clearly, use precise terminology, and structure information logically. Include relevant details while maintaining clarity for the intended audience.' },
+    { id: 'flashcard', name: 'Flashcard Generation', prompt: 'You are a flashcard generation assistant. Create flashcards with questions and answers based on the provided content.' },
+    { id: 'quiz', name: 'Quiz Generation', prompt: 'You are a quiz generation assistant. Create multiple-choice questions based on the provided content.' },
   ];
 
   return (
@@ -659,6 +670,25 @@ export default function EditorPage() {
                   </div>
                 </div>
               )}
+
+              {/* Flashcard and Quiz Sections */}
+              <div className="mt-4">
+                <h3 className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Flashcards & Quizzes</h3>
+                <div className="space-y-1 mt-2">
+                  <button
+                    onClick={() => setShowFlashcardViewer(true)}
+                    className="w-full text-left px-2 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  >
+                    Flashcard Viewer
+                  </button>
+                  <button
+                    onClick={() => setShowFlashcardViewer(true)}
+                    className="w-full text-left px-2 py-2 rounded-md text-sm hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  >
+                    Quiz Generator
+                  </button>
+                </div>
+              </div>
             </div>
           </aside>
         )}
@@ -1111,6 +1141,52 @@ export default function EditorPage() {
         </main>
       </div>
       
+      {/* Flashcard Viewer Toggle Button */}
+      <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-2">
+        <button
+          onClick={() => setShowFlashcardViewer(!showFlashcardViewer)}
+          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-full shadow-lg"
+        >
+          {showFlashcardViewer ? 'Hide Flashcards' : 'Show Flashcards'}
+        </button>
+        <button
+          onClick={() => setShowPomodoroTimer(!showPomodoroTimer)}
+          className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full shadow-lg"
+        >
+          {showPomodoroTimer ? 'Hide Timer' : 'Show Timer'}
+        </button>
+      </div>
+
+      {/* Flashcard Viewer */}
+      {showFlashcardViewer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-3xl w-full">
+            <FlashcardViewer />
+            <button
+              onClick={() => setShowFlashcardViewer(false)}
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Pomodoro Timer */}
+      {showPomodoroTimer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-lg max-w-md w-full">
+            <PomodoroTimer />
+            <button
+              onClick={() => setShowPomodoroTimer(false)}
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-full"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
       <footer className="py-4 text-center text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-slate-700">
         <p>Powered by OpenRouter • Using {selectedModel}</p>

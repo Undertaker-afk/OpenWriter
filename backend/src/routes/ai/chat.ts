@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { generateText } from '../../utils/openrouter/generateText';
 import { generateTextDirectAPI } from '../../utils/openrouter/generateTextDirectAPI';
 import { getRateLimits } from '../../utils/openrouter/getRateLimits';
@@ -6,7 +6,7 @@ import { getRateLimits } from '../../utils/openrouter/getRateLimits';
 const router = express.Router();
 
 // Rate limit checking middleware for more expensive models
-const checkCreditsMiddleware = async (req, res, next) => {
+const checkCreditsMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   // Skip for non-generate routes
   if (!req.path.includes('/generate')) {
     return next();
@@ -45,15 +45,16 @@ const checkCreditsMiddleware = async (req, res, next) => {
     // Continue processing
     next();
   } catch (error) {
-    // If we can't check credits, allow the request to proceed
-    // The actual API call will fail if there are credit issues
     console.error('Error checking credits:', error);
-    next();
+    res.status(500).json({
+      error: 'Internal server error checking credits',
+      type: 'server_error'
+    });
   }
 };
 
 // Chat completions endpoint that exactly matches OpenRouter's API path
-router.post('/chat/completions', checkCreditsMiddleware, async (req, res) => {
+router.post('/chat/completions', checkCreditsMiddleware, async (req: Request, res: Response): Promise<void> => {
   // This endpoint is an alias to /generate but ensures API compatibility with OpenRouter
   // Forward the request to our existing implementation
   try {

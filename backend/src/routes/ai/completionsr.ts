@@ -3,7 +3,7 @@ import { generateTextCompletion, streamTextCompletion } from '../../utils/openro
 
 const router = express.Router();
 
-router.post('/completions', async (req: Request, res: Response<any, Record<string, any>>>): Promise<Response<any, Record<string, any>> | void> => {
+router.post('/completionsr', async (req: Request, res: Response<any, Record<string, any>>>): Promise<Response<any, Record<string, any>> | void> => {
   // Create AbortController for all requests
   const abortController: AbortController = new AbortController();
   

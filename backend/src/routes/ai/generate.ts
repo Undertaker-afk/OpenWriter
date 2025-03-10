@@ -50,7 +50,7 @@ const checkCreditsMiddleware = async (req: Request, res: Response, next: NextFun
   }
 };
 
-router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Response): Promise<void> => {
+router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Response<any, Record<string, any>>): Promise<Response<any, Record<string, any>> | void> => {
   // Create AbortController for all requests
   const abortController = new AbortController();
   
@@ -208,7 +208,7 @@ router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Respo
           
           // Stream completed successfully
           res.write('data: [DONE]\n\n');
-        } catch (streamError) {
+        } catch (streamError: unknown) {
           console.error('Error during streaming:', streamError);
           
           // Only send error if not aborted and connection is still open
@@ -220,7 +220,7 @@ router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Respo
           clearTimeout(streamTimeout);
           res.end();
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('OpenAI SDK streaming failed, falling back to direct API:', error);
         
         // Fallback to direct API streaming with AbortController
@@ -283,7 +283,7 @@ router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Respo
           // Cleanup
           clearInterval(keepAliveInterval);
           clearTimeout(streamTimeout);
-        } catch (streamError) {
+        } catch (streamError: unknown) {
           clearTimeout(streamTimeout);
           
           // Only send error if not aborted and connection is still open
@@ -346,66 +346,66 @@ router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Respo
       };
       
       if (!res.writableEnded) {
-        res.json(responseData);
+        return res.json(responseData);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // If aborted, don't try fallback
       if (abortController.signal.aborted) {
         clearTimeout(requestTimeout);
         if (!res.writableEnded) {
-          res.status(499).json({ error: 'Request cancelled' });
+          return res.status(499).json({ error: 'Request cancelled' });
         }
         return;
       }
       
       // Handle enhanced errors
-      if (error.type || error.code) {
+      if ((error as any).type || (error as any).code) {
         clearTimeout(requestTimeout);
         
-        const statusCode = error.code || error.status || 500;
-        const errorType = error.type || 'unknown';
+        const statusCode = (error as any).code || (error as any).status || 500;
+        const errorType = (error as any).type || 'unknown';
         
         const errorResponse: any = { 
-          error: error.message,
+          error: (error as any).message,
           type: errorType
         };
         
         // Add additional details for moderation errors
-        if (errorType === 'moderation' && error.reasons) {
-          errorResponse.reasons = error.reasons;
-          errorResponse.flagged_input = error.flagged_input;
-          errorResponse.provider = error.provider;
+        if (errorType === 'moderation' && (error as any).reasons) {
+          errorResponse.reasons = (error as any).reasons;
+          errorResponse.flagged_input = (error as any).flagged_input;
+          errorResponse.provider = (error as any).provider;
         }
         
         // Add provider details for provider errors
-        if (errorType === 'provider_error' && error.provider) {
-          errorResponse.provider = error.provider;
+        if (errorType === 'provider_error' && (error as any).provider) {
+          errorResponse.provider = (error as any).provider;
         }
         
         if (!res.writableEnded) {
-          res.status(statusCode).json(errorResponse);
+          return res.status(statusCode).json(errorResponse);
         }
         return;
       }
       
       // Handle string-based errors (fallback)
-      if (error.message && (
-          error.message.includes('Rate limit exceeded') ||
-          error.message.includes('Insufficient credits') ||
-          error.message.includes('API key error') ||
-          error.message.includes('timed out') ||
-          error.message.includes('provider is currently unavailable') ||
-          error.message.includes('No model provider available')
+      if ((error as any).message && (
+          (error as any).message.includes('Rate limit exceeded') ||
+          (error as any).message.includes('Insufficient credits') ||
+          (error as any).message.includes('API key error') ||
+          (error as any).message.includes('timed out') ||
+          (error as any).message.includes('provider is currently unavailable') ||
+          (error as any).message.includes('No model provider available')
         )) {
         clearTimeout(requestTimeout);
         
         const statusCode = 
-          error.message.includes('Rate limit exceeded') ? 429 :
-          error.message.includes('Insufficient credits') ? 402 :
-          error.message.includes('API key error') ? 403 :
-          error.message.includes('timed out') ? 408 :
-          error.message.includes('provider is currently unavailable') ? 502 :
-          error.message.includes('No model provider available') ? 503 : 500;
+          (error as any).message.includes('Rate limit exceeded') ? 429 :
+          (error as any).message.includes('Insufficient credits') ? 402 :
+          (error as any).message.includes('API key error') ? 403 :
+          (error as any).message.includes('timed out') ? 408 :
+          (error as any).message.includes('provider is currently unavailable') ? 502 :
+          (error as any).message.includes('No model provider available') ? 503 : 500;
         
         const errorType = 
           statusCode === 429 ? 'rate_limit' :
@@ -416,8 +416,8 @@ router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Respo
           statusCode === 503 ? 'no_provider_available' : 'server_error';
         
         if (!res.writableEnded) {
-          res.status(statusCode).json({ 
-            error: error.message,
+          return res.status(statusCode).json({ 
+            error: (error as any).message,
             type: errorType
           });
         }
@@ -475,22 +475,22 @@ router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Respo
       };
       
       if (!res.writableEnded) {
-        res.json(responseData);
+        return res.json(responseData);
       }
-      } catch (fallbackError) {
+      } catch (fallbackError: unknown) {
         clearTimeout(requestTimeout);
         
         // Only respond if not aborted and connection is still open
         if (!abortController.signal.aborted && !res.writableEnded) {
           console.error('Both API methods failed:', fallbackError);
-          res.status(500).json({ 
+          return res.status(500).json({ 
             error: 'Failed to generate text with both methods',
-            details: fallbackError.message
+            details: (fallbackError as any).message
           });
         }
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     // Clear timeout in case of error
     clearTimeout(requestTimeout);
     
@@ -502,37 +502,36 @@ router.post('/generate', checkCreditsMiddleware, async (req: Request, res: Respo
     console.error('Error generating text:', error);
     
     // Handle enhanced errors
-    if (error.type || error.code) {
-      const statusCode = error.code || error.status || 500;
-      const errorType = error.type || 'unknown';
+    if ((error as any).type || (error as any).code) {
+      const statusCode = (error as any).code || (error as any).status || 500;
+      const errorType = (error as any).type || 'unknown';
       
       const errorResponse: any = { 
-        error: error.message,
+        error: (error as any).message,
         type: errorType
       };
       
       // Add additional details for moderation errors
-      if (errorType === 'moderation' && error.reasons) {
-        errorResponse.reasons = error.reasons;
-        errorResponse.flagged_input = error.flagged_input;
-        errorResponse.provider = error.provider;
+      if (errorType === 'moderation' && (error as any).reasons) {
+        errorResponse.reasons = (error as any).reasons;
+        errorResponse.flagged_input = (error as any).flagged_input;
+        errorResponse.provider = (error as any).provider;
       }
       
       // Add provider details for provider errors
-      if (errorType === 'provider_error' && error.provider) {
-        errorResponse.provider = error.provider;
-        if (error.raw_error) {
-          errorResponse.raw_provider_error = error.raw_error;
+      if (errorType === 'provider_error' && (error as any).provider) {
+        errorResponse.provider = (error as any).provider;
+        if ((error as any).raw_error) {
+          errorResponse.raw_provider_error = (error as any).raw_error;
         }
       }
       
-      res.status(statusCode).json(errorResponse);
-      return;
+      return res.status(statusCode).json(errorResponse);
     }
     
     // Generic error response
-    res.status(500).json({ 
-      error: error.message || 'Failed to generate text',
+    return res.status(500).json({ 
+      error: (error as any).message || 'Failed to generate text',
       type: 'server_error'
     });
   } finally {

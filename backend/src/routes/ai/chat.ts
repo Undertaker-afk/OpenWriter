@@ -54,7 +54,7 @@ const checkCreditsMiddleware = async (req: Request, res: Response, next: NextFun
 };
 
 // Chat completions endpoint that exactly matches OpenRouter's API path
-router.post('/chat/completions', checkCreditsMiddleware, async (req: Request, res: Response): Promise<void> => {
+router.post('/chat/completions', checkCreditsMiddleware, async (req: Request, res: Response<any, Record<string, any>>): Promise<Response<any, Record<string, any>> | void> => {
   // This endpoint is an alias to /generate but ensures API compatibility with OpenRouter
   // Forward the request to our existing implementation
   try {

@@ -4,7 +4,7 @@ import { getRateLimits } from '../../utils/openrouter';
 
 const router = express.Router();
 
-router.get('/models', async (req: Request, res: Response): Promise<void> => {
+router.get('/models', async (req: Request, res: Response<any, Record<string, any>>): Promise<Response<any, Record<string, any>> | void> => {
   try {
     // Debug log API key (masked for security)
     const apiKey = process.env.OPENROUTER_API_KEY || 'not-set';
@@ -29,18 +29,18 @@ router.get('/models', async (req: Request, res: Response): Promise<void> => {
       console.log(`OpenRouter returned ${response.data?.data?.length || 0} models`);
       // Return the actual models from OpenRouter, which should already have the correct format
       return res.json(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to fetch models from OpenRouter, using fallback list:');
-      if (error.response) {
+      if ((error as any).response) {
         console.error('API Response Error:', {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data
+          status: (error as any).response.status,
+          statusText: (error as any).response.statusText,
+          data: (error as any).response.data
         });
-      } else if (error.request) {
-        console.error('No response received:', error.request);
+      } else if ((error as any).request) {
+        console.error('No response received:', (error as any).request);
       } else {
-        console.error('Error setting up request:', error.message);
+        console.error('Error setting up request:', (error as any).message);
       }
       
       // Create fallback model list that matches OpenRouter's format
@@ -160,9 +160,9 @@ router.get('/models', async (req: Request, res: Response): Promise<void> => {
         data: fallbackModels
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting models:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: {
         message: 'Failed to retrieve models',
         type: 'server_error'
@@ -171,7 +171,7 @@ router.get('/models', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-router.get('/models/:modelId', async (req: Request, res: Response): Promise<void> => {
+router.get('/models/:modelId', async (req: Request, res: Response<any, Record<string, any>>): Promise<Response<any, Record<string, any>> | void> => {
   try {
     const { modelId } = req.params;
     
@@ -198,7 +198,7 @@ router.get('/models/:modelId', async (req: Request, res: Response): Promise<void
       );
       
       // Find the model by ID
-      const model = response.data.data.find(model => model.id === modelId);
+      const model = response.data.data.find((model: any) => model.id === modelId);
       
       if (model) {
         // If found, return as a single model response
@@ -212,7 +212,7 @@ router.get('/models/:modelId', async (req: Request, res: Response): Promise<void
           }
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(`Failed to fetch model ${modelId} from OpenRouter:`, error);
       
       // Try to use the fallback model list if OpenRouter is not available
@@ -256,7 +256,7 @@ router.get('/models/:modelId', async (req: Request, res: Response): Promise<void
       ];
       
       // Find the model in the fallback list
-      const fallbackModel = fallbackModels.find(model => model.id === modelId);
+      const fallbackModel = fallbackModels.find((model: any) => model.id === modelId);
       
       if (fallbackModel) {
         // Return the fallback model if found
@@ -271,9 +271,9 @@ router.get('/models/:modelId', async (req: Request, res: Response): Promise<void
         });
       }
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting model details:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: {
         message: 'Failed to retrieve model details',
         type: 'server_error'

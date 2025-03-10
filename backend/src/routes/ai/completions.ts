@@ -3,7 +3,7 @@ import { generateTextCompletion, streamTextCompletion } from '../../utils/openro
 
 const router = express.Router();
 
-router.post('/completions', async (req: Request, res: Response): Promise<void> => {
+router.post('/completions', async (req: Request, res: Response<any, Record<string, any>>>): Promise<Response<any, Record<string, any>> | void> => {
   // Create AbortController for all requests
   const abortController: AbortController = new AbortController();
   
@@ -101,7 +101,7 @@ router.post('/completions', async (req: Request, res: Response): Promise<void> =
         // Streaming is handled by the function, cleanup on completion
         clearInterval(keepAliveInterval);
         clearTimeout(requestTimeout);
-      } catch (error) {
+      } catch (error: unknown) {
         // Cleanup resources
         clearInterval(keepAliveInterval);
         clearTimeout(requestTimeout);
@@ -111,12 +111,12 @@ router.post('/completions', async (req: Request, res: Response): Promise<void> =
           console.error('Streaming completion failed:', error);
           
           // Handle enhanced errors
-          if (error.type || error.code) {
-            const statusCode = error.code || error.status || 500;
+          if ((error as any).type || (error as any).code) {
+            const statusCode = (error as any).code || (error as any).status || 500;
             res.write(`data: ${JSON.stringify({ 
               error: { 
-                message: error.message,
-                type: error.type || 'unknown' 
+                message: (error as any).message,
+                type: (error as any).type || 'unknown' 
               } 
             })}\n\n`);
           } else {
@@ -162,9 +162,9 @@ router.post('/completions', async (req: Request, res: Response): Promise<void> =
       clearTimeout(requestTimeout);
       
       if (!res.writableEnded) {
-        res.json(result);
+        return res.json(result);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Clear timeout
       clearTimeout(requestTimeout);
       
@@ -176,41 +176,40 @@ router.post('/completions', async (req: Request, res: Response): Promise<void> =
       console.error('Error generating text completion:', error);
       
       // Handle enhanced errors
-      if (error.type || error.code) {
-        const statusCode = error.code || error.status || 500;
-        const errorType = error.type || 'unknown';
+      if ((error as any).type || (error as any).code) {
+        const statusCode = (error as any).code || (error as any).status || 500;
+        const errorType = (error as any).type || 'unknown';
         
         const errorResponse: any = { 
-          error: error.message,
+          error: (error as any).message,
           type: errorType
         };
         
         // Add additional details for moderation errors
-        if (errorType === 'moderation' && error.reasons) {
-          errorResponse.reasons = error.reasons;
-          errorResponse.flagged_input = error.flagged_input;
-          errorResponse.provider = error.provider;
+        if (errorType === 'moderation' && (error as any).reasons) {
+          errorResponse.reasons = (error as any).reasons;
+          errorResponse.flagged_input = (error as any).flagged_input;
+          errorResponse.provider = (error as any).provider;
         }
         
         // Add provider details for provider errors
-        if (errorType === 'provider_error' && error.provider) {
-          errorResponse.provider = error.provider;
-          if (error.raw_error) {
-            errorResponse.raw_provider_error = error.raw_error;
+        if (errorType === 'provider_error' && (error as any).provider) {
+          errorResponse.provider = (error as any).provider;
+          if ((error as any).raw_error) {
+            errorResponse.raw_provider_error = (error as any).raw_error;
           }
         }
         
-        res.status(statusCode).json(errorResponse);
-        return;
+        return res.status(statusCode).json(errorResponse);
       }
       
       // Generic error response
-      res.status(500).json({ 
-        error: error.message || 'Failed to generate text completion',
+      return res.status(500).json({ 
+        error: (error as any).message || 'Failed to generate text completion',
         type: 'server_error'
       });
     }
-  } catch (error) {
+  } catch (error: unknown) {
     // Clear timeout in case of error
     clearTimeout(requestTimeout);
     
@@ -220,7 +219,7 @@ router.post('/completions', async (req: Request, res: Response): Promise<void> =
     }
     
     console.error('Error in completions route:', error);
-    res.status(500).json({ 
+    return res.status(500).json({ 
       error: 'Internal server error processing completions request',
       type: 'server_error'
     });

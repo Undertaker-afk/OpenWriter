@@ -137,6 +137,12 @@ interface MaxPrice {
   image?: number;
 }
 
+interface CompletionUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  cache_discount?: number;
+}
+
 function prepareMessagesWithCaching(messages: Message[], model: string, enableCaching: boolean): Message[] {
   if (!enableCaching || !model.startsWith('anthropic/')) {
     return messages;
@@ -293,20 +299,20 @@ export async function generateText(
     }
 
     return completion;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error calling OpenRouter API via OpenAI SDK:', error);
     
-    if (error.status || error.statusCode) {
-      const status = error.status || error.statusCode;
-      const errorData = error.error || error.response?.data;
+    if ((error as any).status || (error as any).statusCode) {
+      const status = (error as any).status || (error as any).statusCode;
+      const errorData = (error as any).error || (error as any).response?.data;
       
-      const enhancedError: any = new Error(error.message || 'Unknown error');
+      const enhancedError: any = new Error((error as any).message || 'Unknown error');
       enhancedError.code = status;
       enhancedError.status = status;
       
       if (errorData && errorData.error) {
         const openRouterError = errorData.error;
-        enhancedError.message = openRouterError.message || error.message;
+        enhancedError.message = openRouterError.message || (error as any).message;
         enhancedError.metadata = openRouterError.metadata;
       }
       

@@ -1,9 +1,9 @@
-import express, { Request, Response } from 'express';
+import { Request, Response, Application } from 'express';
 import { generateTextCompletion, streamTextCompletion } from '../../utils/openrouter';
 
 const router = express.Router();
 
-router.post('/completions', async (req: Request, res: Response): Promise<Response | void> => {
+const handler = async (req: Request, res: Response): Promise<Response | void> => {
   // Create AbortController for all requests
   const abortController: AbortController = new AbortController();
   

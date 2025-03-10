@@ -12,7 +12,6 @@
     "start:frontend": "cd frontend && npm start",
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "build": "cd backend && npm run build && cd ../frontend && npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "ai",

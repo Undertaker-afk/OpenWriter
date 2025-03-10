@@ -5,37 +5,45 @@ name: Node.js Build
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        part: [frontend, backend]
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: '0'
     - uses: actions/setup-node@v3
       with:
-        node-version: lts/*
+        node-version: 'lts/*'
     - name: Install GitVersion
       uses: gittools/actions/gitversion/setup@v0.9.15
       with:
-        versionSpec: 5.x
+        versionSpec: '5.x'
     - id: determine_version
       name: Determine Version
       uses: gittools/actions/gitversion/execute@v0.9.15
       with:
         additionalArguments: /overrideconfig mode=Mainline
     - name: Install Dependencies
-      run: npm ci
+      run: |
+        cd ${{ matrix.part }}
+        npm ci
       shell: bash
-    - name: Build
-      run: npm run build
+    - name: Build ${{ matrix.part }}
+      run: |
+        cd ${{ matrix.part }}
+        npm run build
       shell: bash
-    - name: Package
-      run: |-
+    - name: Package ${{ matrix.part }}
+      run: |
+        cd ${{ matrix.part }}
         SOURCEPATH=.
         OUTPUTPATH=.
         # If there is a build directory, assume that is what we want to package
         if [[ -d "build" ]]; then
           SOURCEPATH=build
         fi
-        zip -r OpenWriter.${{ steps.determine_version.outputs.semVer }}.zip ${SOURCEPATH}
+        zip -r OpenWriter.${{ steps.determine_version.outputs.semVer }}.${{ matrix.part }}.zip ${SOURCEPATH}
       shell: bash
     - name: Tag Release
       uses: mathieudutour/github-tag-action@v6.1
@@ -53,7 +61,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ steps.determine_version.outputs.semVer }}+run${{ github.run_number }}-attempt${{ github.run_attempt }}
-        files: OpenWriter.${{ steps.determine_version.outputs.semVer }}.zip
+        files: OpenWriter.${{ steps.determine_version.outputs.semVer }}.${{ matrix.part }}.zip
 permissions:
   id-token: write
   checks: write

@@ -28,7 +28,7 @@ jobs:
       run: npm list --all > dependencies.txt
       shell: bash
     - name: Collect Dependencies
-      uses: actions/upload-artifact@latest
+      uses: actions/upload-artifact@v4
       with:
         name: Dependencies
         path: dependencies.txt
@@ -36,7 +36,7 @@ jobs:
       run: npm outdated > dependencyUpdates.txt
       shell: bash
     - name: Collect Dependency Updates
-      uses: actions/upload-artifact@latest
+      uses: actions/upload-artifact@v4
       with:
         name: Dependencies Updates
         path: dependencyUpdates.txt
